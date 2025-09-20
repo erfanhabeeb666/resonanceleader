@@ -1,9 +1,8 @@
+// src/AdminPanel.js
 import React, { useEffect, useState } from "react";
-import {
-  getLeaderboard,
-  updateLeaderboard,
-  addCompetitionResult,
-} from "./Leaderboardservice";
+import { getLeaderboard, updateLeaderboard, addCompetitionResult } from "./Leaderboardservice";
+import { addCompetitionLog } from "./competitionService";
+
 
 const AdminPanel = () => {
   const [data, setData] = useState([]);
@@ -13,6 +12,7 @@ const AdminPanel = () => {
   const [message, setMessage] = useState("");
 
   // Competition form state
+  const [competitionName, setCompetitionName] = useState("");
   const [first, setFirst] = useState("");
   const [second, setSecond] = useState("");
   const [third, setThird] = useState("");
@@ -20,7 +20,7 @@ const AdminPanel = () => {
   const [secondPoints, setSecondPoints] = useState(7);
   const [thirdPoints, setThirdPoints] = useState(5);
 
-  const ADMIN_PASSWORD = "college123"; // change this
+  const ADMIN_PASSWORD = "college123";
 
   useEffect(() => {
     if (authenticated) {
@@ -34,10 +34,8 @@ const AdminPanel = () => {
   }, [authenticated]);
 
   const handleChange = (houseName, value) => {
-    setData((prev) =>
-      prev.map((item) =>
-        item.house === houseName ? { ...item, points: Number(value) } : item
-      )
+    setData(prev =>
+      prev.map(item => item.house === houseName ? { ...item, points: Number(value) } : item)
     );
   };
 
@@ -52,20 +50,48 @@ const AdminPanel = () => {
 
   const handleCompetitionSubmit = async (e) => {
     e.preventDefault();
+
+    if (!competitionName) {
+      alert("❌ Please enter a competition name!");
+      return;
+    }
+
     try {
-      await addCompetitionResult(
-        { house: first, points: Number(firstPoints) },
-        { house: second, points: Number(secondPoints) },
-        { house: third, points: Number(thirdPoints) }
+      // 1️⃣ Update leaderboard
+      await addCompetitionResult(first, second, third, {
+        first: Number(firstPoints),
+        second: Number(secondPoints),
+        third: Number(thirdPoints),
+        competition: competitionName,
+      });
+
+      // 2️⃣ Log competition
+      await addCompetitionLog(
+        competitionName,
+        first,
+        second,
+        third,
+        {
+          first: Number(firstPoints),
+          second: Number(secondPoints),
+          third: Number(thirdPoints)
+        }
       );
+
+      // 3️⃣ Refresh leaderboard
       const scores = await getLeaderboard();
       setData(scores);
-      alert("🏆 Competition results added successfully!");
+
+      alert(`🏆 Results for "${competitionName}" added successfully!`);
+
+      // Reset form
+      setCompetitionName("");
       setFirst("");
       setSecond("");
       setThird("");
     } catch (error) {
       alert("❌ Failed to add competition results!");
+      console.error(error);
     }
   };
 
@@ -79,7 +105,6 @@ const AdminPanel = () => {
     }
   };
 
-  // 🔒 Show login if not authenticated
   if (!authenticated) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
@@ -104,7 +129,6 @@ const AdminPanel = () => {
     );
   }
 
-  // ✅ Show AdminPanel content only if authenticated
   if (loading) {
     return <p className="text-center text-gray-500 mt-10">Loading...</p>;
   }
@@ -117,77 +141,48 @@ const AdminPanel = () => {
       <div className="bg-white p-6 shadow rounded w-full max-w-2xl">
         <h2 className="text-xl font-semibold mb-4">🏆 Add Competition Result</h2>
         <form onSubmit={handleCompetitionSubmit} className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block font-medium">First Place</label>
-              <select
-                value={first}
-                onChange={(e) => setFirst(e.target.value)}
-                className="border rounded w-full px-2 py-1"
-                required
-              >
-                <option value="">Select House</option>
-                {data.map((row) => (
-                  <option key={row.house} value={row.house}>
-                    {row.house}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="number"
-                value={firstPoints}
-                onChange={(e) => setFirstPoints(e.target.value)}
-                className="border rounded w-full px-2 py-1 mt-1"
-                placeholder="Points"
-              />
-            </div>
-            <div>
-              <label className="block font-medium">Second Place</label>
-              <select
-                value={second}
-                onChange={(e) => setSecond(e.target.value)}
-                className="border rounded w-full px-2 py-1"
-                required
-              >
-                <option value="">Select House</option>
-                {data.map((row) => (
-                  <option key={row.house} value={row.house}>
-                    {row.house}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="number"
-                value={secondPoints}
-                onChange={(e) => setSecondPoints(e.target.value)}
-                className="border rounded w-full px-2 py-1 mt-1"
-                placeholder="Points"
-              />
-            </div>
-            <div>
-              <label className="block font-medium">Third Place</label>
-              <select
-                value={third}
-                onChange={(e) => setThird(e.target.value)}
-                className="border rounded w-full px-2 py-1"
-                required
-              >
-                <option value="">Select House</option>
-                {data.map((row) => (
-                  <option key={row.house} value={row.house}>
-                    {row.house}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="number"
-                value={thirdPoints}
-                onChange={(e) => setThirdPoints(e.target.value)}
-                className="border rounded w-full px-2 py-1 mt-1"
-                placeholder="Points"
-              />
-            </div>
+          <div className="mb-4">
+            <label className="block font-medium">Competition Name</label>
+            <input
+              type="text"
+              value={competitionName}
+              onChange={(e) => setCompetitionName(e.target.value)}
+              placeholder="Enter competition name"
+              className="border rounded w-full px-2 py-1"
+              required
+            />
           </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            {[{ pos: "First", value: first, setValue: setFirst, points: firstPoints, setPoints: setFirstPoints },
+              { pos: "Second", value: second, setValue: setSecond, points: secondPoints, setPoints: setSecondPoints },
+              { pos: "Third", value: third, setValue: setThird, points: thirdPoints, setPoints: setThirdPoints }].map((item, i) => (
+              <div key={i}>
+                <label className="block font-medium">{item.pos} Place</label>
+                <select
+                  value={item.value}
+                  onChange={(e) => item.setValue(e.target.value)}
+                  className="border rounded w-full px-2 py-1"
+                  required
+                >
+                  <option value="">Select House</option>
+                  {data.map((row) => (
+                    <option key={row.house} value={row.house}>
+                      {row.house}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  value={item.points}
+                  onChange={(e) => item.setPoints(e.target.value)}
+                  className="border rounded w-full px-2 py-1 mt-1"
+                  placeholder="Points"
+                />
+              </div>
+            ))}
+          </div>
+
           <button
             type="submit"
             className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
@@ -206,7 +201,7 @@ const AdminPanel = () => {
               key={row.house}
               className="flex justify-between bg-gray-50 p-3 rounded"
             >
-              <span>{row.house}</span>
+              <span>{row.house} - {row.lastCompetition || "No competition yet"}</span>
               <input
                 type="number"
                 value={row.points}
