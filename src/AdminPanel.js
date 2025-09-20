@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getLeaderboard, updateLeaderboard } from "./Leaderboardservice"
+import {
+  getLeaderboard,
+  updateLeaderboard,
+  addCompetitionResult,
+} from "./Leaderboardservice";
 
 const AdminPanel = () => {
   const [data, setData] = useState([]);
@@ -8,7 +12,15 @@ const AdminPanel = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const [message, setMessage] = useState("");
 
-  const ADMIN_PASSWORD = "college123"; // change to your desired password
+  // Competition form state
+  const [first, setFirst] = useState("");
+  const [second, setSecond] = useState("");
+  const [third, setThird] = useState("");
+  const [firstPoints, setFirstPoints] = useState(10);
+  const [secondPoints, setSecondPoints] = useState(7);
+  const [thirdPoints, setThirdPoints] = useState(5);
+
+  const ADMIN_PASSWORD = "college123"; // change this
 
   useEffect(() => {
     if (authenticated) {
@@ -35,6 +47,25 @@ const AdminPanel = () => {
       alert("✅ Scores updated successfully!");
     } catch (error) {
       alert("❌ Failed to update scores!");
+    }
+  };
+
+  const handleCompetitionSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await addCompetitionResult(
+        { house: first, points: Number(firstPoints) },
+        { house: second, points: Number(secondPoints) },
+        { house: third, points: Number(thirdPoints) }
+      );
+      const scores = await getLeaderboard();
+      setData(scores);
+      alert("🏆 Competition results added successfully!");
+      setFirst("");
+      setSecond("");
+      setThird("");
+    } catch (error) {
+      alert("❌ Failed to add competition results!");
     }
   };
 
@@ -79,30 +110,119 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gray-50 p-6">
-      <h1 className="text-2xl font-bold mb-6">⚙️ Admin Panel</h1>
-      <div className="w-full max-w-2xl space-y-4">
-        {data.map((row) => (
-          <div
-            key={row.house}
-            className="flex justify-between bg-white p-4 shadow rounded"
-          >
-            <span>{row.house}</span>
-            <input
-              type="number"
-              value={row.points}
-              onChange={(e) => handleChange(row.house, e.target.value)}
-              className="border px-2 py-1 w-24 rounded"
-            />
+    <div className="flex flex-col items-center min-h-screen bg-gray-50 p-6 space-y-10">
+      <h1 className="text-2xl font-bold">⚙️ Admin Panel</h1>
+
+      {/* 🏆 Add Competition Section */}
+      <div className="bg-white p-6 shadow rounded w-full max-w-2xl">
+        <h2 className="text-xl font-semibold mb-4">🏆 Add Competition Result</h2>
+        <form onSubmit={handleCompetitionSubmit} className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block font-medium">First Place</label>
+              <select
+                value={first}
+                onChange={(e) => setFirst(e.target.value)}
+                className="border rounded w-full px-2 py-1"
+                required
+              >
+                <option value="">Select House</option>
+                {data.map((row) => (
+                  <option key={row.house} value={row.house}>
+                    {row.house}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="number"
+                value={firstPoints}
+                onChange={(e) => setFirstPoints(e.target.value)}
+                className="border rounded w-full px-2 py-1 mt-1"
+                placeholder="Points"
+              />
+            </div>
+            <div>
+              <label className="block font-medium">Second Place</label>
+              <select
+                value={second}
+                onChange={(e) => setSecond(e.target.value)}
+                className="border rounded w-full px-2 py-1"
+                required
+              >
+                <option value="">Select House</option>
+                {data.map((row) => (
+                  <option key={row.house} value={row.house}>
+                    {row.house}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="number"
+                value={secondPoints}
+                onChange={(e) => setSecondPoints(e.target.value)}
+                className="border rounded w-full px-2 py-1 mt-1"
+                placeholder="Points"
+              />
+            </div>
+            <div>
+              <label className="block font-medium">Third Place</label>
+              <select
+                value={third}
+                onChange={(e) => setThird(e.target.value)}
+                className="border rounded w-full px-2 py-1"
+                required
+              >
+                <option value="">Select House</option>
+                {data.map((row) => (
+                  <option key={row.house} value={row.house}>
+                    {row.house}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="number"
+                value={thirdPoints}
+                onChange={(e) => setThirdPoints(e.target.value)}
+                className="border rounded w-full px-2 py-1 mt-1"
+                placeholder="Points"
+              />
+            </div>
           </div>
-        ))}
+          <button
+            type="submit"
+            className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+          >
+            Add Result
+          </button>
+        </form>
       </div>
-      <button
-        onClick={handleSave}
-        className="mt-6 px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
-      >
-        Save
-      </button>
+
+      {/* ✏️ Manual Edit Section */}
+      <div className="bg-white p-6 shadow rounded w-full max-w-2xl">
+        <h2 className="text-xl font-semibold mb-4">✏️ Edit Scores Manually</h2>
+        <div className="space-y-3">
+          {data.map((row) => (
+            <div
+              key={row.house}
+              className="flex justify-between bg-gray-50 p-3 rounded"
+            >
+              <span>{row.house}</span>
+              <input
+                type="number"
+                value={row.points}
+                onChange={(e) => handleChange(row.house, e.target.value)}
+                className="border px-2 py-1 w-24 rounded"
+              />
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={handleSave}
+          className="mt-4 px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
+        >
+          Save
+        </button>
+      </div>
     </div>
   );
 };

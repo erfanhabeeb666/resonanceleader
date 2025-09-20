@@ -45,3 +45,16 @@ export async function updateHouseScore(houseName, points) {
   );
   return await updateLeaderboard(updated);
 }
+export async function addCompetitionResult(first, second, third, points) {
+  // points = { first: number, second: number, third: number }
+
+  const current = await getLeaderboard();
+  const updated = current.map((h) => {
+    if (h.house === first) return { ...h, points: h.points + points.first };
+    if (h.house === second) return { ...h, points: h.points + points.second };
+    if (h.house === third) return { ...h, points: h.points + points.third };
+    return h;
+  });
+
+  return await updateLeaderboard(updated);
+}
