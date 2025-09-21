@@ -1,6 +1,6 @@
 // src/services/competitionService.js
 const COMPETITION_BIN_ID = "68cfaf5fae596e708ff5dad1";
-const COMPETITION_API_KEY = "$2a$10$6GScYZVLiX7wrbkuI3RkE.axBXv0q8A6a4jdU3lyYLEocfEVJGZhW";
+const COMPETITION_API_KEY = "$2a$10$bFAohK1LnxE70qa1US8Cte754xYmxI9eEITtLtU0.ZMbmAgETy5bi";
 const COMPETITION_URL = `https://api.jsonbin.io/v3/b/${COMPETITION_BIN_ID}`;
 
 export async function getCompetitions() {

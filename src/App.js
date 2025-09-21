@@ -7,8 +7,8 @@ function App() {
   return (
     <BrowserRouter>
       <nav className="bg-gray-800 text-white p-4 flex justify-between">
-        <Link to="/" className="font-bold">Leaderboard</Link>
-        <Link to="/admin" className="hover:underline">Admin</Link>
+        <Link to="/" className="font-bold">Resonance 2025</Link>
+        {/* <Link to="/admin" className="hover:underline">Admin</Link> */}
       </nav>
       <Routes>
         <Route path="/" element={<Home />} />

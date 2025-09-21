@@ -57,7 +57,6 @@ const AdminPanel = () => {
     }
 
     try {
-      // 1️⃣ Update leaderboard
       await addCompetitionResult(first, second, third, {
         first: Number(firstPoints),
         second: Number(secondPoints),

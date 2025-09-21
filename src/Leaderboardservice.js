@@ -1,5 +1,5 @@
 // src/services/leaderboardService.js
-const BIN_ID = "68cbd8e7ae596e708ff2cede"; // Your JSONBin ID
+const BIN_ID = "68d10f64d0ea881f40862afe"; // Your JSONBin ID
 const API_KEY = "$2a$10$bFAohK1LnxE70qa1US8Cte754xYmxI9eEITtLtU0.ZMbmAgETy5bi"; // Your JSONBin secret key
 const BASE_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
